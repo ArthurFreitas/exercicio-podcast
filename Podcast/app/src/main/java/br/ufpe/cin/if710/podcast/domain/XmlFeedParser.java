@@ -80,7 +80,6 @@ public class XmlFeedParser {
                 description = readData(parser, "description");
             }
             else if (name.equals("enclosure")) {
-                //TODO implementar resto do metodo para pegar atributo url da tag enclosure
                 downloadLink = readEnclosure(parser);
                 skip(parser);
             }
@@ -111,11 +110,16 @@ public class XmlFeedParser {
         return result;
     }
 
+    public static String readAttribute(XmlPullParser parser, String attribute){
+        String result = parser.getAttributeValue(null,attribute);
+        return (result != null)?result:"";
+    }
+
     // Processa tags do tipo <enclosure> para obter dados do episodio
     public static String readEnclosure(XmlPullParser parser)
             throws IOException, XmlPullParserException {
-        //parser.require(XmlPullParser.START_TAG, null, "enclosure");
-        String data = "implementar...";
+        parser.require(XmlPullParser.START_TAG, null, "enclosure");
+        String data = readAttribute(parser,"url");
         //parser.require(XmlPullParser.END_TAG, null, "enclosure");
         return data;
     }
