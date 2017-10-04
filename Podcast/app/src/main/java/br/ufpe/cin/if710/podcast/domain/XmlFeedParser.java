@@ -110,6 +110,7 @@ public class XmlFeedParser {
         return result;
     }
 
+    //Lê atributos dentro de uma tag
     public static String readAttribute(XmlPullParser parser, String attribute){
         String result = parser.getAttributeValue(null,attribute);
         return (result != null)?result:"";
@@ -120,7 +121,6 @@ public class XmlFeedParser {
             throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "enclosure");
         String data = readAttribute(parser,"url");
-        //parser.require(XmlPullParser.END_TAG, null, "enclosure");
         return data;
     }
 

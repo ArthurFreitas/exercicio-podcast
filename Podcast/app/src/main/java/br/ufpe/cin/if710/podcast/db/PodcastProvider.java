@@ -6,13 +6,15 @@ import android.database.Cursor;
 import android.net.Uri;
 
 public class PodcastProvider extends ContentProvider {
+
+    private PodcastDBHelper db;
+
     public PodcastProvider() {
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return db.getWritableDatabase().delete(PodcastDBHelper.DATABASE_TABLE, selection, selectionArgs);
     }
 
     @Override
@@ -24,21 +26,25 @@ public class PodcastProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        // TODO: Implement this to handle requests to insert a new row.
-        throw new UnsupportedOperationException("Not yet implemented");
+        long id = db.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, values);
+        return Uri.withAppendedPath(PodcastProviderContract.EPISODE_LIST_URI, Long.toString(id));
     }
 
     @Override
     public boolean onCreate() {
-        // TODO: Implement this to initialize your content provider on startup.
-        return false;
+        //pega instância do singleton
+        db = PodcastDBHelper.getInstance(getContext());
+        return true;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
-        // TODO: Implement this to handle query requests from clients.
-        throw new UnsupportedOperationException("Not yet implemented");
+        //popula um cursor com a query
+        Cursor cursor = null;
+        cursor = db.getReadableDatabase().query(PodcastDBHelper.DATABASE_TABLE,
+                projection,selection,selectionArgs,null,null,sortOrder);
+        return cursor;
     }
 
     @Override

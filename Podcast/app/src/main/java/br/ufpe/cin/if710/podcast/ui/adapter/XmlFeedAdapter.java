@@ -2,6 +2,8 @@ package br.ufpe.cin.if710.podcast.ui.adapter;
 
 import java.util.List;
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -9,6 +11,7 @@ import android.widget.TextView;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
+import br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity;
 
 public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
@@ -52,7 +55,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
             convertView = View.inflate(getContext(), linkResource, null);
@@ -65,6 +68,22 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         }
         holder.item_title.setText(getItem(position).getTitle());
         holder.item_date.setText(getItem(position).getPubDate());
+
+        //adiciona on click listener para os itens da lista
+        convertView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //XmlFeedAdapter adapter = (XmlFeedAdapter) parent.getAdapter();
+                ItemFeed item = getItem(position);
+                Context context = getContext();
+                //passa o objeto no intent
+                context.startActivity(new Intent(context, EpisodeDetailActivity.class).putExtra("item",item));
+
+                /*String msg = item.getTitle() + " " + item.getLink();
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();*/
+            }
+        });
+
         return convertView;
     }
 }

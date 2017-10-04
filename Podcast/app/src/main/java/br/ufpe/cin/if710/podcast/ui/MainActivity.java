@@ -1,6 +1,8 @@
 package br.ufpe.cin.if710.podcast.ui;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
+import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
@@ -32,6 +35,7 @@ public class MainActivity extends Activity {
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
     //TODO teste com outros links de podcast
 
+    private ContentResolver contentResolver;
     private ListView items;
 
     @Override
@@ -39,7 +43,18 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        contentResolver = getContentResolver();
         items = (ListView) findViewById(R.id.items);
+
+        items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                XmlFeedAdapter adapter = (XmlFeedAdapter) parent.getAdapter();
+                ItemFeed item = adapter.getItem(position);
+                String msg = item.getTitle() + " " + item.getLink();
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -77,6 +92,9 @@ public class MainActivity extends Activity {
     }
 
     private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
+
+        private ContentResolver contentResolver = getContentResolver();
+
         @Override
         protected void onPreExecute() {
             Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
@@ -105,18 +123,16 @@ public class MainActivity extends Activity {
             //atualizar o list view
             items.setAdapter(adapter);
             items.setTextFilterEnabled(true);
-            /*
-            items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    XmlFeedAdapter adapter = (XmlFeedAdapter) parent.getAdapter();
-                    ItemFeed item = adapter.getItem(position);
-                    String msg = item.getTitle() + " " + item.getLink();
-                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-                }
-            });
-            /**/
         }
+    }
+
+    //insere os valores da lista de feed no db
+    private void insertValuesIntoDB(List<ItemFeed> feed){
+        ContentValues[] contentValues = new ContentValues[feed.size()];
+        for (int i = 0; i < feed.size(); i++){
+            contentValues[i] = feed.get(i-1).toContentValues();
+        }
+        contentResolver.bulkInsert(PodcastProviderContract.EPISODE_LIST_URI,contentValues);
     }
 
     //TODO Opcional - pesquise outros meios de obter arquivos da internet

@@ -1,6 +1,12 @@
 package br.ufpe.cin.if710.podcast.domain;
 
-public class ItemFeed {
+import android.content.ContentValues;
+
+import java.io.Serializable;
+
+import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
+
+public class ItemFeed implements Serializable{
     private final String title;
     private final String link;
     private final String pubDate;
@@ -14,6 +20,14 @@ public class ItemFeed {
         this.pubDate = pubDate;
         this.description = description;
         this.downloadLink = downloadLink;
+    }
+
+    public ItemFeed(ContentValues cv){
+        this.title = (String)cv.get(PodcastDBHelper.EPISODE_TITLE);
+        this.link = (String)cv.get(PodcastDBHelper.EPISODE_LINK);
+        this.pubDate = (String)cv.get(PodcastDBHelper.EPISODE_DATE);
+        this.description = (String)cv.get(PodcastDBHelper.EPISODE_DESC);
+        this.downloadLink = (String)cv.get(PodcastDBHelper.EPISODE_DOWNLOAD_LINK);
     }
 
     public String getTitle() {
@@ -36,6 +50,17 @@ public class ItemFeed {
         return downloadLink;
     }
 
+    /**converte objeto do tipo itemfeed para ser compatível com o db*/
+    public ContentValues toContentValues(){
+        ContentValues cv = new ContentValues();
+        cv.put(PodcastDBHelper.EPISODE_DATE, this.pubDate);
+        cv.put(PodcastDBHelper.EPISODE_DESC, this.description );
+        cv.put(PodcastDBHelper.EPISODE_DOWNLOAD_LINK, this.downloadLink);
+        cv.put(PodcastDBHelper.EPISODE_LINK, this.link);
+        cv.put(PodcastDBHelper.EPISODE_TITLE, this.title);
+        cv.put(PodcastDBHelper.EPISODE_FILE_URI, "");
+        return cv;
+    }
     @Override
     public String toString() {
         return title;
