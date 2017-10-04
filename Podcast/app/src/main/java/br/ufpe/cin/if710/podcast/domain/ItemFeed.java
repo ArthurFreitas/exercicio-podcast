@@ -1,6 +1,7 @@
 package br.ufpe.cin.if710.podcast.domain;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
 import java.io.Serializable;
 
@@ -16,18 +17,18 @@ public class ItemFeed implements Serializable{
 
     public ItemFeed(String title, String link, String pubDate, String description, String downloadLink) {
         this.title = title;
-        this.link = link;
+        this.link = link==null?"":link;
         this.pubDate = pubDate;
         this.description = description;
         this.downloadLink = downloadLink;
     }
 
-    public ItemFeed(ContentValues cv){
-        this.title = (String)cv.get(PodcastDBHelper.EPISODE_TITLE);
-        this.link = (String)cv.get(PodcastDBHelper.EPISODE_LINK);
-        this.pubDate = (String)cv.get(PodcastDBHelper.EPISODE_DATE);
-        this.description = (String)cv.get(PodcastDBHelper.EPISODE_DESC);
-        this.downloadLink = (String)cv.get(PodcastDBHelper.EPISODE_DOWNLOAD_LINK);
+    public ItemFeed(Cursor cursor){
+        this.title = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_TITLE));
+        this.link = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_LINK));
+        this.pubDate = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_DATE));
+        this.description = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_DESC));
+        this.downloadLink = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_DOWNLOAD_LINK));
     }
 
     public String getTitle() {

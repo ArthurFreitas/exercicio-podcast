@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
+import br.ufpe.cin.if710.podcast.db.PodcastProvider;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
@@ -105,8 +107,12 @@ public class MainActivity extends Activity {
             List<ItemFeed> itemList = new ArrayList<>();
             try {
                 itemList = XmlFeedParser.parse(getRssFeed(params[0]));
+                contentResolver.delete(PodcastProviderContract.EPISODE_LIST_URI, null,null); //deletes oldDB, not pretty at all
             } catch (IOException e) {
-                e.printStackTrace();
+                //carrega dados do bd, caso não consigo estabelecer conexão
+                Cursor cursor = contentResolver.query(PodcastProviderContract.EPISODE_LIST_URI,
+                        PodcastProviderContract.ALL_COLUMNS, null, null, null,null);
+                itemList = loadValuesFromCursor(cursor);
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }
@@ -123,6 +129,8 @@ public class MainActivity extends Activity {
             //atualizar o list view
             items.setAdapter(adapter);
             items.setTextFilterEnabled(true);
+
+            insertValuesIntoDB(feed);
         }
     }
 
@@ -130,9 +138,18 @@ public class MainActivity extends Activity {
     private void insertValuesIntoDB(List<ItemFeed> feed){
         ContentValues[] contentValues = new ContentValues[feed.size()];
         for (int i = 0; i < feed.size(); i++){
-            contentValues[i] = feed.get(i-1).toContentValues();
+            contentValues[i] = feed.get(i).toContentValues();
         }
         contentResolver.bulkInsert(PodcastProviderContract.EPISODE_LIST_URI,contentValues);
+    }
+
+    //carrega valores do db, caso não haja internet
+    private List<ItemFeed> loadValuesFromCursor(Cursor cursor){
+        List<ItemFeed> items = new ArrayList<ItemFeed>();
+        for(cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            items.add(new ItemFeed(cursor));
+        }
+        return items;
     }
 
     //TODO Opcional - pesquise outros meios de obter arquivos da internet

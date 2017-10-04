@@ -3,6 +3,8 @@ package br.ufpe.cin.if710.podcast.db;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
 public class PodcastProvider extends ContentProvider {
@@ -41,9 +43,9 @@ public class PodcastProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
         //popula um cursor com a query
-        Cursor cursor = null;
-        cursor = db.getReadableDatabase().query(PodcastDBHelper.DATABASE_TABLE,
+        Cursor cursor = db.getReadableDatabase().query(PodcastDBHelper.DATABASE_TABLE,
                 projection,selection,selectionArgs,null,null,sortOrder);
+
         return cursor;
     }
 
