@@ -1,25 +1,38 @@
 package br.ufpe.cin.if710.podcast.ui.adapter;
 
 import java.util.List;
+
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import br.ufpe.cin.if710.podcast.R;
+import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
+import br.ufpe.cin.if710.podcast.services.DownloadService;
 import br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity;
 
 public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
     int linkResource;
+    private static String PLAY = "Play";
+    private static String DOWNLOAD = "Download";
+    private MediaPlayer mPlayer; //provavelmente ta errado isso...
+    private ContentResolver resolver; //isso tbm...
 
     public XmlFeedAdapter(Context context, int resource, List<ItemFeed> objects) {
         super(context, resource, objects);
         linkResource = resource;
+        resolver = getContext().getContentResolver();
     }
 
     /**
@@ -52,22 +65,59 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
     static class ViewHolder {
         TextView item_title;
         TextView item_date;
+        Button download_button;
     }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
+        final ViewHolder holder;
         if (convertView == null) {
             convertView = View.inflate(getContext(), linkResource, null);
             holder = new ViewHolder();
             holder.item_title = (TextView) convertView.findViewById(R.id.item_title);
             holder.item_date = (TextView) convertView.findViewById(R.id.item_date);
+            holder.download_button = (Button) convertView.findViewById(R.id.item_action);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
         holder.item_title.setText(getItem(position).getTitle());
         holder.item_date.setText(getItem(position).getPubDate());
+        holder.download_button.setText(getButtonText(getItem(position)));
+
+        //starta o service de download e passa informações importantes para atualizar o botão na tela quando o service terminar
+        holder.download_button.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View src){
+                holder.download_button.setEnabled(false);
+                if(holder.download_button.getText().equals(DOWNLOAD)){
+                    Context context = getContext();
+                    Intent downloadService = new Intent(context, DownloadService.class);
+                    downloadService.setData(Uri.parse(getItem(position).getDownloadLink()));
+                    downloadService.putExtra("position",position);
+                    downloadService.putExtra("download_link",getItem(position).getDownloadLink());
+                    context.startService(downloadService);
+
+                }else if(holder.download_button.getText().equals(PLAY)){
+                    ItemFeed item = getItem(position);
+                    if(!item.hasBeenDownloaded()) {
+                        //consultar no banco atualizar o item e dar play no mplayer, assumindo que download link seja único
+                        Cursor cursor = resolver.query(PodcastProviderContract.EPISODE_LIST_URI,
+                                PodcastProviderContract.ALL_COLUMNS,
+                                PodcastProviderContract.DOWNLOAD_LINK + "=?",
+                                new String[]{item.getDownloadLink()},
+                                null,
+                                null
+                        );
+                        cursor.moveToFirst();
+                        if (!cursor.isAfterLast()) {
+                            item = new ItemFeed(cursor);
+                        }
+                    }
+                    mPlayer = MediaPlayer.create(getContext(),Uri.parse(item.getFile_uri()));
+                    mPlayer.start();
+                }
+            }
+        });
 
         //adiciona on click listener para os itens da lista
         convertView.setOnClickListener(new View.OnClickListener() {
@@ -85,5 +135,13 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         });
 
         return convertView;
+    }
+
+    private String getButtonText(ItemFeed item){
+        if(item.hasBeenDownloaded()){
+            return PLAY;
+        }
+        //TODO: resume se já estava sendo tocado
+        return DOWNLOAD;
     }
 }

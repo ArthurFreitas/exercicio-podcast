@@ -13,7 +13,7 @@ public class ItemFeed implements Serializable{
     private final String pubDate;
     private final String description;
     private final String downloadLink;
-
+    private final String file_uri;
 
     public ItemFeed(String title, String link, String pubDate, String description, String downloadLink) {
         this.title = title;
@@ -21,6 +21,7 @@ public class ItemFeed implements Serializable{
         this.pubDate = pubDate;
         this.description = description;
         this.downloadLink = downloadLink;
+        this.file_uri="";
     }
 
     public ItemFeed(Cursor cursor){
@@ -29,6 +30,7 @@ public class ItemFeed implements Serializable{
         this.pubDate = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_DATE));
         this.description = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_DESC));
         this.downloadLink = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_DOWNLOAD_LINK));
+        this.file_uri = (String)cursor.getString(cursor.getColumnIndex(PodcastDBHelper.EPISODE_FILE_URI));
     }
 
     public String getTitle() {
@@ -51,6 +53,8 @@ public class ItemFeed implements Serializable{
         return downloadLink;
     }
 
+    public String getFile_uri(){return file_uri;}
+
     /**converte objeto do tipo itemfeed para ser compatível com o db*/
     public ContentValues toContentValues(){
         ContentValues cv = new ContentValues();
@@ -59,9 +63,14 @@ public class ItemFeed implements Serializable{
         cv.put(PodcastDBHelper.EPISODE_DOWNLOAD_LINK, this.downloadLink);
         cv.put(PodcastDBHelper.EPISODE_LINK, this.link);
         cv.put(PodcastDBHelper.EPISODE_TITLE, this.title);
-        cv.put(PodcastDBHelper.EPISODE_FILE_URI, "");
+        cv.put(PodcastDBHelper.EPISODE_FILE_URI, file_uri);
         return cv;
     }
+
+    public boolean hasBeenDownloaded(){
+        return !file_uri.equals("");
+    }
+
     @Override
     public String toString() {
         return title;
