@@ -26,7 +26,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
     int linkResource;
     private static String PLAY = "Play";
     private static String DOWNLOAD = "Download";
-    private MediaPlayer mPlayer; //provavelmente ta errado isso...
+    private static MediaPlayer mPlayer; //provavelmente ta errado isso...
     private ContentResolver resolver; //isso tbm...
 
     public XmlFeedAdapter(Context context, int resource, List<ItemFeed> objects) {
@@ -88,8 +88,8 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         //starta o service de download e passa informações importantes para atualizar o botão na tela quando o service terminar
         holder.download_button.setOnClickListener(new View.OnClickListener(){
             public void onClick(View src){
-                holder.download_button.setEnabled(false);
                 if(holder.download_button.getText().equals(DOWNLOAD)){
+                    holder.download_button.setEnabled(false);
                     Context context = getContext();
                     Intent downloadService = new Intent(context, DownloadService.class);
                     downloadService.setData(Uri.parse(getItem(position).getDownloadLink()));
@@ -112,6 +112,9 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                         if (!cursor.isAfterLast()) {
                             item = new ItemFeed(cursor);
                         }
+                    }
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        mPlayer.stop();
                     }
                     mPlayer = MediaPlayer.create(getContext(),Uri.parse(item.getFile_uri()));
                     mPlayer.start();
